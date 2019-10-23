@@ -48,6 +48,20 @@ ifeq ($(PC),pc)
 	PLAYER_CLASS = RandomPlayer
 endif
 
+ifdef SIM
+	SIMULATOR = $(SIM)
+endif
+ifdef SIMULATOR
+$(shell find ./Simulator -type f -name \*.hpp | awk -F"/" '{ print $$NF }' | grep -v all.hpp | awk '{print "\#include \"" $$1 "\""}' > Simulator/all.hpp)
+else
+SIMULATOR = Simulator0
+endif
+
+PLAYOUT_COUNT = 1000
+ifdef PLY
+PLAYOUT_COUNT = $(PLY)
+endif
+
 BIN_DIR = bin
 OBJ_DIR = obj
 EXIST_BIN_DIR = $(shell find ./ -type d -name $(BIN_DIR) | awk -F"/" '{ print $$NF }')
@@ -102,10 +116,10 @@ DEPS   = $(OBJS:.$(OBJ_EXT)=.d)
 
 ifdef USE_FS
 $(OBJ_DIR)/%.$(OBJ_EXT): %.cpp
-	$(CXX) $(CXXFLAGS) -DPLAYER_NAME=$(PLAYER_NAME) -DPLAYER_CLASS=$(PLAYER_CLASS) -DUSE_FS -I./ -I./lib/ -c $< -o $@
+	$(CXX) $(CXXFLAGS) -DPLAYER_NAME=$(PLAYER_NAME) -DPLAYER_CLASS=$(PLAYER_CLASS) -DPLAYOUT_COUNT=$(PLAYOUT_COUNT) -DUSE_FS -I./ -I./lib/ -c $< -o $@
 else
 $(OBJ_DIR)/%.$(OBJ_EXT): %.cpp
-	$(CXX) $(CXXFLAGS) -DPLAYER_NAME=$(PLAYER_NAME) -DPLAYER_CLASS=$(PLAYER_CLASS) -I./ -I./lib/ -c $< -o $@
+	$(CXX) $(CXXFLAGS) -DPLAYER_NAME=$(PLAYER_NAME) -DPLAYER_CLASS=$(PLAYER_CLASS) -DPLAYOUT_COUNT=$(PLAYOUT_COUNT) -I./ -I./lib/ -c $< -o $@
 endif
 
 -include $(DEPS)
