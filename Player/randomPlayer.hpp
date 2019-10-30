@@ -28,6 +28,14 @@ public:
     }
 
     virtual std::vector<Hand> candidateHand(){
-        return game.getLegalMove1st();
+        auto legalMoves = game.getLegalMove1st();
+        for(auto&& lm: legalMoves){
+            auto& unit = lm.unit;
+            auto& direct = lm.direct;
+            if(unit.y == 0 && ((unit.x == 0 && direct == Direction::West) || (unit.x == 5 && direct == Direction::East))){
+                return {lm};
+            }
+        }
+        return legalMoves;
     }
 };
