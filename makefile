@@ -41,7 +41,21 @@ ifneq ($(shell sed -n 2p src/player.cpp), \#include "$(PLAYER_CLASS_FILE)")
 $(shell sed -i "2c #include \"$(PLAYER_CLASS_FILE)\"" src/player.cpp)
 endif
 
-DEFS := -DPLAYER_NAME=$(PLAYER_NAME) -DPLAYER_CLASS=$(PLAYER_CLASS)
+ifdef SIM
+	SIMULATOR = $(SIM)
+endif
+ifdef SIMULATOR
+$(shell find ./Simulator -type f -name \*.hpp | awk -F"/" '{ print $$NF }' | grep -v all.hpp | awk '{print "\#include \"" $$1 "\""}' > Simulator/all.hpp)
+else
+SIMULATOR = Simulator0
+endif
+
+PLAYOUT_COUNT ?= 1000
+ifdef PLY
+PLAYOUT_COUNT = $(PLY)
+endif
+
+DEFS := -DPLAYER_NAME=$(PLAYER_NAME) -DPLAYER_CLASS=$(PLAYER_CLASS) -DPLAYOUT_COUNT=$(PLAYOUT_COUNT)
 
 SRC_DIR ?= src
 BIN_DIR ?= bin
