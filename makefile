@@ -45,7 +45,10 @@ ifdef SIM
 	SIMULATOR = $(SIM)
 endif
 ifdef SIMULATOR
-$(shell find ./Simulator -type f -name \*.hpp | awk -F"/" '{ print $$NF }' | grep -v all.hpp | awk '{print "\#include \"" $$1 "\""}' > Simulator/all.hpp)
+$(shell echo "#ifndef SIMULATOR_ALL" > Simulator/all.hpp)
+$(shell echo "#define SIMULATOR_ALL" >> Simulator/all.hpp)
+$(shell find ./Simulator -type f -name \*.hpp | awk -F"/" '{ print $$NF }' | grep -v all.hpp | grep hpp | awk '{print "\#include \"" $$1 "\""}' >> Simulator/all.hpp)
+$(shell echo "#endif" >> Simulator/all.hpp)
 else
 SIMULATOR = Simulator0
 endif
