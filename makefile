@@ -42,21 +42,20 @@ $(shell sed -i "2c #include \"$(PLAYER_CLASS_FILE)\"" src/player.cpp)
 endif
 
 ifdef SIM
-	SIMULATOR = $(SIM)
+	SIMULATOR := $(SIM)
 endif
 ifdef SIMULATOR
 $(shell echo "#ifndef SIMULATOR_ALL" > Simulator/all.hpp)
 $(shell echo "#define SIMULATOR_ALL" >> Simulator/all.hpp)
 $(shell find ./Simulator -type f -name \*.hpp | awk -F"/" '{ print $$NF }' | grep -v all.hpp | grep hpp | awk '{print "\#include \"" $$1 "\""}' >> Simulator/all.hpp)
 $(shell echo "#endif" >> Simulator/all.hpp)
-else
-SIMULATOR = Simulator0
 endif
+SIMULATOR ?= Simulator0
 
-PLAYOUT_COUNT ?= 1000
 ifdef PLY
-PLAYOUT_COUNT = $(PLY)
+PLAYOUT_COUNT := $(PLY)
 endif
+PLAYOUT_COUNT ?= 1000
 
 DEFS := -DPLAYER_NAME=$(PLAYER_NAME) -DPLAYER_CLASS=$(PLAYER_CLASS) -DPLAYOUT_COUNT=$(PLAYOUT_COUNT)
 
