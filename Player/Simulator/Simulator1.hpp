@@ -9,7 +9,7 @@ class Simulator1: public Simulator{
         for(auto&& lm: legalMoves){
             auto& unit = lm.unit;
             auto& direct = lm.direct;
-            if(unit.y == 0 && ((unit.x == 0 && direct == Direction::West) || (unit.x == 5 && direct == Direction::East))){
+            if(unit.y() == 0 && ((unit.x() == 0 && direct == Direction::West) || (unit.x() == 5 && direct == Direction::East))){
                 return {lm};
             }
         }
@@ -20,7 +20,7 @@ class Simulator1: public Simulator{
         for(auto&& lm: legalMoves){
             auto& unit = lm.unit;
             auto& direct = lm.direct;
-            if(unit.y == 5 && ((unit.x == 0 && direct == Direction::West) || (unit.x == 5 && direct == Direction::East))){
+            if(unit.y() == 5 && ((unit.x() == 0 && direct == Direction::West) || (unit.x() == 5 && direct == Direction::East))){
                 return {lm};
             }
         }
@@ -30,14 +30,14 @@ class Simulator1: public Simulator{
     double playout(){
         std::vector<Hand> lm;
         while(true){
-            if(current.getResult() != Result::OnPlay)
+            if(current.result() != Result::OnPlay)
                 break;
             // 相手の手番
             lm = getCandidateMove2nd();
             std::uniform_int_distribution<int> selector1(0, lm.size() - 1);
             auto m = lm[selector1(mt)];
             current.move(m);
-            if(current.getResult() != Result::OnPlay)
+            if(current.result() != Result::OnPlay)
                 break;
             // 自分の手番
             lm = getCandidateMove1st();
