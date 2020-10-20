@@ -32,7 +32,7 @@ public:
         for(auto&& lm: legalMoves){
             auto& unit = lm.unit;
             auto& direct = lm.direct;
-            if(unit.y == 0 && ((unit.x == 0 && direct == Direction::West) || (unit.x == 5 && direct == Direction::East))){
+            if(unit.y() == 0 && ((unit.x() == 0 && direct == Direction::West) || (unit.x() == 5 && direct == Direction::East))){
                 return {lm};
             }
         }
