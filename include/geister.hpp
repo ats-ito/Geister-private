@@ -84,6 +84,5 @@ inline std::ostream& operator<<(std::ostream& stream, const Geister& value){
     return stream << value.toString();
 }
 
-#endif
 #include "impl/geister.hpp"
-
+#endif
