@@ -47,7 +47,7 @@ endif
 ifdef SIMULATOR
 $(shell echo "#ifndef SIMULATOR_ALL" > Simulator/all.hpp)
 $(shell echo "#define SIMULATOR_ALL" >> Simulator/all.hpp)
-$(shell find ./Simulator -type f -name \*.hpp | awk -F"/" '{ print $$NF }' | grep -v all.hpp | grep hpp | awk '{print "\#include \"" $$1 "\""}' >> Simulator/all.hpp)
+$(shell find ./Simulator -type f -name \*.hpp | awk -F"/" '{ print $$NF }' | grep -v all.hpp | grep hpp | awk '{print "#include \"" $$1 "\""}' >> Simulator/all.hpp)
 $(shell echo "#endif" >> Simulator/all.hpp)
 endif
 SIMULATOR ?= Simulator0
@@ -55,9 +55,24 @@ SIMULATOR ?= Simulator0
 ifdef PLY
 PLAYOUT_COUNT := $(PLY)
 endif
-PLAYOUT_COUNT ?= 1000
 
-DEFS := -DPLAYER_NAME=$(PLAYER_NAME) -DPLAYER_CLASS=$(PLAYER_CLASS) -DPLAYOUT_COUNT=$(PLAYOUT_COUNT)
+DEFS := -DPLAYER_NAME=$(PLAYER_NAME) -DPLAYER_CLASS=$(PLAYER_CLASS)
+
+ifeq ($(OS),Windows_NT)
+DEFS += -D__USE_W32_SOCKETS
+endif
+
+ifdef USE_FS
+DEFS += -DUSE_FS
+endif
+
+ifdef PLAYOUT_COUNT
+DEFS += -DPLAYOUT_COUNT=$(PLAYOUT_COUNT)
+endif
+
+ifdef SIMULATOR
+DEFS += -DSIMULATOR=$(SIMULATOR)
+endif
 
 SRC_DIR ?= src
 BIN_DIR ?= bin
