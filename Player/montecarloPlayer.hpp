@@ -5,12 +5,14 @@
 #include <iostream>
 
 #ifndef PLAYOUT_COUNT
-#define PLAYOUT_COUNT 10000
+#define PLAYOUT_COUNT 1000
 #endif
 
 #ifndef SIMULATOR
-#define SIMULATOR Simulator1
+#define SIMULATOR Simulator0
 #endif
+
+#define DECIDEHAND decideHand_Average
 
 
 class MonteCarloPlayer: public Player{
@@ -27,9 +29,9 @@ protected:
         std::vector<char> unknown;
         // 色ごとに判明済みの駒をリスト化
         for(int u = 8; u < 16; ++u){
-            if(game.allUnit()[u].color == UnitColor::blue)
+            if(game.allUnit()[u].color() == UnitColor::blue)
                 blue.push_back(u - 8 + 'A');
-            else if(game.allUnit()[u].color == UnitColor::red)
+            else if(game.allUnit()[u].color() == UnitColor::red)
                 red.push_back(u - 8 + 'A');
             else
                 unknown.push_back(u - 8 + 'A');
@@ -110,14 +112,13 @@ protected:
     std::string decideHand_Average(){
         auto legalMoves = game.getLegalMove1st();
         auto patterns = getLegalPattern(game);
-        int patternCounts = patterns.size();
+        const int playout = std::max(static_cast<int>(playoutCount / patterns.size()), 1);
         std::vector<double> rewards(legalMoves.size(), 0.0);
         
         for(int l = 0; l < legalMoves.size(); ++l){
             auto m = legalMoves[l];
             SIMULATOR s(game);
             s.root.move(m);
-            int playout = playoutCount / patterns.size();
             for(auto&& pattern: patterns){
                 rewards[l] += s.run(pattern, playout);
             }
@@ -129,46 +130,26 @@ protected:
     }
 
     std::string decideHand_MinMax(){
-        auto patterns = getLegalPattern(game);
-        Simulator sim(game);
-        auto legalMoves = game.getLegalMove1st();
-        int playout = playoutCount / legalMoves.size();
-        std::vector<double> winCounts;
-        for(int i = 0; i < legalMoves.size(); ++i){
-            winCounts.push_back(0.0);
-        }
-        std::vector<double> patternCounts;
-        for(int p = 0; p < patterns.size(); ++p){
-            patternCounts.push_back(0.0);
-        }
+        const auto patterns = getLegalPattern(game);
+        const int playout = std::max(static_cast<int>(playoutCount / patterns.size()), 1);
+        const auto legalMoves = game.getLegalMove1st();
+        std::vector<double> rewards(legalMoves.size(), 0.0);
+        
         for(int l = 0; l < legalMoves.size(); ++l){
-            for(int p = 0; p < patterns.size(); ++p){
-                patternCounts[p] = 0.0;
+            auto m = legalMoves[l];
+            SIMULATOR s(game);
+            s.root.move(m);
+
+            std::vector<double> patternRewards(patterns.size(), 0.0);
+            for(size_t p = 0; p < patterns.size(); ++p){
+                patternRewards[p] = s.run(patterns[p], playout);
             }
-            for(int i = 0; i < playout; ++i){
-                auto m = legalMoves[l];
-                auto win = 0.0;
-                Simulator s(game, patterns[i % patterns.size()]);
-                s.root.move(m);
-                patternCounts[i % patterns.size()] += s.run();
-            }
-            int minWin = playout;
-            for(int i = 0; i < patternCounts.size(); ++i){
-                if(patternCounts[i] < minWin){
-                    minWin = patternCounts[i];
-                    winCounts[l] = minWin;
-                }
-            }
+            rewards[l] = *std::min(patternRewards.begin(), patternRewards.end());
         }
-        double maxWin = -playoutCount;
-        auto action = legalMoves[0];
-        for(int i = 0; i < legalMoves.size(); ++i){
-            if(winCounts[i] > maxWin){
-                maxWin = winCounts[i];
-                action = legalMoves[i];
-            }
-        }
-        return action;
+        
+        auto&& max_iter = std::max_element(rewards.begin(), rewards.end());
+        int index = std::distance(rewards.begin(), max_iter);
+        return legalMoves[index];
     }
 
     std::string decideHand_Vote(){
@@ -224,8 +205,6 @@ public:
 
     virtual std::string decideHand(std::string res){
         game = Geister(res);
-        return decideHand_Average();
+        return DECIDEHAND();
     }
 };
-
-#undef SIMULATOR
