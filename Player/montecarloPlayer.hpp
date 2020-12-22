@@ -8,9 +8,7 @@
 #define PLAYOUT_COUNT 1000
 #endif
 
-#ifndef SIMULATOR
-#define SIMULATOR Simulator0
-#endif
+#define SIMULATOR Simulator1
 
 #define DECIDEHAND decideHand_Average
 
