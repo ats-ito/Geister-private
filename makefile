@@ -1,4 +1,4 @@
-ifeq  ($(shell uname),Darwin)
+ifeq ($(shell uname),Darwin)
 	CXX ?= clang++
 else
 	CXX ?= g++
@@ -19,7 +19,12 @@ else
 	EXE_EXT ?= out
 	ifneq ($(filter clang++%, $(CXX)),)
 		CXXFLAGS += -stdlib=libc++
-		LDFLAGS += -stdlib=libc++ -lc++experimental -lc++abi -lc++fs
+		ifneq ($(shell uname),Darwin)
+			LDFLAGS += -stdlib=libc++ -lc++experimental -lc++abi # -lc++fs
+		endif
+		ifeq ($(shell uname),Darwin)
+			LDFLAGS += -lc++abi # -lc++fs
+		endif
 	endif
 	ifneq ($(filter g++%, $(CXX)),)
 		LDFLAGS += -lstdc++ -lstdc++fs
@@ -34,23 +39,28 @@ ifneq ($(PC),pc)
 	PLAYER_CLASS ?= $(PC)
 endif
 PLAYER_CLASS ?= RandomPlayer
-PLAYER_CLASS_FILE := $(shell grep -wrl -e "class $(PLAYER_CLASS)" Player)
+PLAYER_CLASS_FILE := $(shell grep -wrl --include='*.hpp' -e "class $(PLAYER_CLASS)" Player)
 # ↓でもいいがmakeのバージョンが4以降でないと対応していない
 # PLAYER_CLASS_FILE != grep -wrl -e "class $(PLAYER_CLASS)" Player
 ifneq ($(shell sed -n 2p src/player.cpp), \#include "$(PLAYER_CLASS_FILE)")
+ifneq ($(shell uname),Darwin)
 $(shell sed -i "2c #include \"$(PLAYER_CLASS_FILE)\"" src/player.cpp)
 endif
+ifeq ($(shell uname),Darwin)
+$(shell sed -i "" "2c \#include \"$(PLAYER_CLASS_FILE)\"" src/player.cpp)
+endif
+endif
 
-ifdef SIM
-	SIMULATOR := $(SIM)
-endif
-ifdef SIMULATOR
-$(shell echo "#ifndef SIMULATOR_ALL" > Simulator/all.hpp)
-$(shell echo "#define SIMULATOR_ALL" >> Simulator/all.hpp)
-$(shell find ./Simulator -type f -name \*.hpp | awk -F"/" '{ print $$NF }' | grep -v all.hpp | grep hpp | awk '{print "#include \"" $$1 "\""}' >> Simulator/all.hpp)
-$(shell echo "#endif" >> Simulator/all.hpp)
-endif
-SIMULATOR ?= Simulator0
+# ifdef SIM
+# 	SIMULATOR := $(SIM)
+# endif
+# ifdef SIMULATOR
+# $(shell echo "#ifndef SIMULATOR_ALL" > Simulator/all.hpp)
+# $(shell echo "#define SIMULATOR_ALL" >> Simulator/all.hpp)
+# $(shell find ./Simulator -type f -name \*.hpp | awk -F"/" '{ print $$NF }' | grep -v all.hpp | grep hpp | awk '{print "#include \"" $$1 "\""}' >> Simulator/all.hpp)
+# $(shell echo "#endif" >> Simulator/all.hpp)
+# endif
+SIMULATOR ?= Simulator1
 
 ifdef PLY
 PLAYOUT_COUNT := $(PLY)
